@@ -9,7 +9,7 @@ const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const MIN_VOTES = 1000;
 const MIN_ANSWERS = 3;
-const MAX_ANSWERS = 50;
+const MAX_ANSWERS = 500;
 
 const CATEGORIES = [
   { key: "withLeoDiCaprio",   label: "Avec : Leonardo DiCaprio", discover: "with_cast=6193"  },
