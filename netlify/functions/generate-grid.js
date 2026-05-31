@@ -97,6 +97,7 @@ const CATEGORY_GROUPS = {
   rating: [
     { key: "ratingAbove8",  label: "Note TMDB > 8.0", discover: "vote_average.gte=8.0" },
     { key: "ratingAbove75", label: "Note TMDB > 7.5", discover: "vote_average.gte=7.5" },
+    { key: "ratingBelow5",  label: "Note TMDB < 5.0", discover: "vote_average.lte=4.9&vote_count.gte=1000" },
   ],
 
   // ── GENRES ──────────────────────────────────────────────────────────
@@ -116,13 +117,10 @@ const CATEGORY_GROUPS = {
   ],
 
   // ── LANGUES ─────────────────────────────────────────────────────────
-  language: [
-    { key: "langEnglish", label: "En langue anglaise",  discover: "with_original_language=en" },
-    { key: "langFrench",  label: "En langue française", discover: "with_original_language=fr" },
-    { key: "langSpanish", label: "En langue espagnole", discover: "with_original_language=es" },
-    { key: "langItalian", label: "En langue italienne", discover: "with_original_language=it" },
-    { key: "langJapanese",label: "En langue japonaise", discover: "with_original_language=ja" },
-    { key: "langKorean",  label: "En langue coréenne",  discover: "with_original_language=ko" },
+ language: [
+    { key: "langEnglish",    label: "En langue anglaise",           discover: "with_original_language=en" },
+    { key: "langFrench",     label: "En langue française",          discover: "with_original_language=fr" },
+    { key: "langNonEnFr",    label: "Langue ni anglaise ni française", discover: null },
   ],
 };
 
