@@ -79,6 +79,7 @@ exports.handler = async function () {
     for (const row of rowCats) {
       for (const col of colCats) {
         const count = await countMovies(row.discover, col.discover);
+        console.log(`${row.key} x ${col.key} = ${count}`);
         if (count < MIN_ANSWERS || count > MAX_ANSWERS) {
           valid = false;
           break;
