@@ -175,7 +175,7 @@ exports.handler = async function () {
     for (const row of rowCats) {
       for (const col of colCats) {
         const count = await countMovies(row.discover, col.discover);
-        // Si null (catégorie sans discover), on ignore cette case
+        console.log(`${row.key} x ${col.key} = ${count}`);
         if (count === null) continue;
         if (count < MIN_ANSWERS || count > MAX_ANSWERS) {
           valid = false;
