@@ -138,12 +138,12 @@ function shuffle(arr) {
 }
 
 function pickCategories() {
-  // On choisit 6 groupes différents
   const groupNames = shuffle(Object.keys(CATEGORY_GROUPS));
   const selected = groupNames.slice(0, 6);
 
   const cats = selected.map(g => {
-    const group = CATEGORY_GROUPS[g];
+    // On filtre pour ne garder que les catégories avec un discover valide
+    const group = CATEGORY_GROUPS[g].filter(c => c.discover !== null);
     return group[Math.floor(Math.random() * group.length)];
   });
 
@@ -152,7 +152,6 @@ function pickCategories() {
     colCats: cats.slice(3, 6),
   };
 }
-
 exports.handler = async function () {
   const today = new Date().toISOString().slice(0, 10);
 
