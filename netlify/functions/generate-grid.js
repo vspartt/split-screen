@@ -9,7 +9,7 @@ const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE = "https://api.themoviedb.org/3";
 const MIN_VOTES = 1000;
 const MIN_ANSWERS = 3;
-const MAX_ANSWERS = 500;
+const MAX_ANSWERS = 1000;
 
 const CATEGORY_GROUPS = {
 
@@ -97,7 +97,6 @@ const CATEGORY_GROUPS = {
   rating: [
     { key: "ratingAbove8",  label: "Note TMDB > 8.0", discover: "vote_average.gte=8.0" },
     { key: "ratingAbove75", label: "Note TMDB > 7.5", discover: "vote_average.gte=7.5" },
-    { key: "ratingBelow5",  label: "Note TMDB < 5.0", discover: "vote_average.lte=4.9&vote_count.gte=1000" },
   ],
 
   // ── GENRES ──────────────────────────────────────────────────────────
