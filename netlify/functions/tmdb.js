@@ -1,5 +1,3 @@
-const fetch = require("node-fetch");
-
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE    = "https://api.themoviedb.org/3";
 const MIN_VOTES    = 1000;
