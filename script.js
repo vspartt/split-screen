@@ -2,9 +2,7 @@
 //  CINÉ-DOKU — JavaScript v5
 // ============================================================
 
-const TMDB_API_KEY = "b404324996bb415a5e31d539accc038e";
-const TMDB_BASE    = "https://api.themoviedb.org/3";
-const MIN_VOTES    = 1000;
+const MIN_VOTES = 1000;
 
 // ============================================================
 //  HELPERS DE VALIDATION
@@ -88,6 +86,7 @@ const TODAY_GRID = {
   rows: ["decade90s", "ratingAbove8", "before2000"],
   cols: ["withLeoDiCaprio", "genreAction", "genreHorror"],
 };
+
 // ============================================================
 //  CACHE API
 // ============================================================
@@ -97,7 +96,7 @@ const countCache = {};
 
 async function fetchMovieDetails(movieId) {
   if (movieCache[movieId]) return movieCache[movieId];
-  const url  = `${TMDB_BASE}/movie/${movieId}?api_key=${TMDB_API_KEY}&language=fr-FR&append_to_response=credits`;
+  const url  = `/.netlify/functions/tmdb?type=details&movieId=${movieId}`;
   const res  = await fetch(url);
   const data = await res.json();
   movieCache[movieId] = data;
@@ -106,8 +105,6 @@ async function fetchMovieDetails(movieId) {
 
 // ============================================================
 //  COMPTAGE DES RÉPONSES POSSIBLES
-//  Utilise /discover avec les deux paramètres combinés.
-//  Retourne un nombre, ou null si non calculable.
 // ============================================================
 
 async function countValidMovies(row, col) {
@@ -123,7 +120,7 @@ async function countValidMovies(row, col) {
   }
 
   try {
-    const url  = `${TMDB_BASE}/discover/movie?api_key=${TMDB_API_KEY}&vote_count.gte=${MIN_VOTES}&${rowDiscover}&${colDiscover}`;
+    const url  = `/.netlify/functions/tmdb?type=discover&rowDiscover=${encodeURIComponent(rowDiscover)}&colDiscover=${encodeURIComponent(colDiscover)}`;
     const res  = await fetch(url);
     const data = await res.json();
     countCache[key] = data.total_results ?? 0;
@@ -136,7 +133,6 @@ async function countValidMovies(row, col) {
 
 // ============================================================
 //  VALIDATION D'UN FILM
-//  Retourne { valid, reason, details }
 // ============================================================
 
 async function validateMovie(movieId, row, col) {
@@ -154,21 +150,13 @@ async function validateMovie(movieId, row, col) {
 
 // ============================================================
 //  SYSTÈME DE SCORE
-//  Score = 15 + (85 × (1 − P/100))   min 15 pts, max 100 pts
-// ============================================================
-
-// ============================================================
-//  SYSTÈME DE SCORE (Simulation pour le prototype)
 // ============================================================
 
 function computeScore(details) {
-  // On simule la rareté : moins le film a de votes sur TMDB, plus il rapporte de points.
-  // Un blockbuster à 20 000 votes donnera 15 pts. Un film pointu à 1000 votes donnera ~96 pts.
   let calculSimule = 100 - (details.vote_count / 250);
-  
-  // On s'assure que le score reste strictement entre 15 et 100
   return Math.round(Math.max(15, Math.min(100, calculSimule)));
 }
+
 // ============================================================
 //  ÉTAT DU JEU
 // ============================================================
@@ -295,8 +283,7 @@ function fillCell(cellEl, details, points) {
   const poster = details.poster_path
     ? `<img src="https://image.tmdb.org/t/p/w92${details.poster_path}" style="width:48px;border-radius:4px;margin-bottom:6px;">`
     : "🎬";
-  // On adapte la couleur des points pour qu'elle soit lisible sur fond clair
-  const pointsColor = points >= 70 ? "#d4a000" : points >= 40 ? "#2a3659" : "#6c7a9c"; 
+  const pointsColor = points >= 70 ? "#d4a000" : points >= 40 ? "#2a3659" : "#6c7a9c";
 
   cellEl.innerHTML = `
     ${poster}
@@ -304,9 +291,9 @@ function fillCell(cellEl, details, points) {
     <span style="font-size:10px;color:#6c7a9c;margin-top:2px;">${year}</span>
     <span style="font-family:'Montserrat',sans-serif;font-size:12px;font-weight:bold;color:${pointsColor};margin-top:4px;">+${points} pts</span>
   `;
-  cellEl.style.background  = "#ffffff"; // Fond blanc pur
-  cellEl.style.border      = "2px solid #f3c623"; // Cadre doré un peu plus épais
-  cellEl.style.boxShadow   = "0 4px 15px rgba(243, 198, 35, 0.2)"; // Aura lumineuse
+  cellEl.style.background  = "#ffffff";
+  cellEl.style.border      = "2px solid #f3c623";
+  cellEl.style.boxShadow   = "0 4px 15px rgba(243, 198, 35, 0.2)";
   cellEl.style.cursor      = "default";
   cellEl.classList.remove("game-cell");
   cellEl.removeEventListener("click", onCellClick);
@@ -328,8 +315,7 @@ async function onMovieSelected(movieId) {
     const { valid, reason, details } = await validateMovie(movieId, row, col);
 
     if (valid) {
-      // --- BONNE RÉPONSE ---
-      const pts = computeScore(details); // On calcule avec le nombre de votes TMDB
+      const pts = computeScore(details);
       totalScore += pts;
       usedMovies.add(movieId);
       fillCell(element, details, pts);
@@ -337,17 +323,16 @@ async function onMovieSelected(movieId) {
       closeModal();
       checkWin();
     } else {
-      // --- MAUVAISE RÉPONSE (-20 PTS) ---
-      totalScore = Math.max(0, totalScore - 20); // Le score baisse, mais ne va pas sous zéro
-      
+      totalScore = Math.max(0, totalScore - 20);
+
       const msgs = {
         both_fail: "❌ Ce film ne respecte ni la ligne, ni la colonne.",
         row_fail:  "❌ Ce film ne respecte pas la <strong>ligne</strong>.",
         col_fail:  "❌ Ce film ne respecte pas la <strong>colonne</strong>.",
       };
       setModalMessage(msgs[reason] || "❌ Mauvaise réponse.", "#e50914");
-      
-      loseLife(); // Fait perdre un cœur
+
+      loseLife();
       searchInput.disabled = false;
       searchInput.focus();
     }
@@ -358,6 +343,7 @@ async function onMovieSelected(movieId) {
     isValidating = false;
   }
 }
+
 // ============================================================
 //  RECHERCHE TMDB
 // ============================================================
@@ -366,7 +352,7 @@ async function searchMovies(query) {
   if (!query || query.length < 2) { resultsList.innerHTML = ""; return; }
 
   try {
-    const url  = `${TMDB_BASE}/search/movie?api_key=${TMDB_API_KEY}&language=fr-FR&query=${encodeURIComponent(query)}`;
+    const url  = `/.netlify/functions/tmdb?type=search&query=${encodeURIComponent(query)}`;
     const res  = await fetch(url);
     const data = await res.json();
 
@@ -384,19 +370,15 @@ async function searchMovies(query) {
     movies.forEach(m => {
       const li = document.createElement("li");
       li.className = "result-item";
-      
-      // On affiche le résultat sous forme de ligne (flexbox) pour aligner l'image et le texte
       li.style.display = "flex";
       li.style.alignItems = "center";
 
-      // On gère la pochette (ou on met un faux fond gris si TMDB n'a pas d'image)
       const poster = m.poster_path
         ? `<img src="https://image.tmdb.org/t/p/w92${m.poster_path}" style="width: 35px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 12px; flex-shrink: 0;">`
         : `<div style="width: 35px; height: 50px; background: #444; border-radius: 4px; margin-right: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">🎬</div>`;
 
-      // On injecte uniquement l'image et le titre, plus aucune stat !
       li.innerHTML = `${poster} <span style="font-weight: bold; font-size: 15px; line-height: 1.2;">${m.title}</span>`;
-      
+
       li.addEventListener("click", () => onMovieSelected(m.id));
       resultsList.appendChild(li);
     });
@@ -417,22 +399,18 @@ async function openModal(row, col, element) {
   searchInput.disabled  = false;
   resultsList.innerHTML = "";
   cellHint.textContent  = "⏳ Calcul des réponses possibles…";
-  
-  // Petit indicateur de chargement
+
   element.innerHTML = `<span style="font-size:12px; color:#666;">⏳...</span>`;
-  
+
   modal.classList.remove("hidden");
   searchInput.focus();
 
-  // Comptage en arrière-plan
   const count = await countValidMovies(row, col);
-  
+
   if (count === null) {
-    // Si TMDB ne peut pas faire le calcul complexe, on met un point d'interrogation
     cellHint.textContent = "🎬 Impossible de deviner le nombre exact pour ce croisement.";
     element.innerHTML = `<span style="font-size:18px; font-weight:bold; color:#555;">🎬 ?</span>`;
   } else {
-    // Si le calcul a fonctionné, on affiche le chiffre !
     cellHint.textContent = `🎬 ${count} réponse${count > 1 ? "s" : ""} possible${count > 1 ? "s" : ""} pour cette case`;
     element.innerHTML = `<span style="font-size:18px; font-weight:bold; color:#888;">🎬 ${count}</span>`;
   }
